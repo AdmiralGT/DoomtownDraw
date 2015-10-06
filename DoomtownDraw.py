@@ -47,8 +47,7 @@ class DoomtownDraw:
         parser = argparse.ArgumentParser(description="Calculate Doomtown Hand ranks.")
         parser.add_argument('filename', type=argparse.FileType('r'),
                             help='The file containing the deck to evaluate')
-        parser.add_argument('--stud', type=int, required=True, action='store',
-                            help='The number of stud bullets in the posse.')
+        parser.add_argument('--stud', type=int, action='store', help='The number of stud bullets in the posse.')
         parser.add_argument('--iterations', type=int, action='store',
                             help='The number of iterations to simulate hands for')
         parser.add_argument('--debug', action='store_true', help='Print debugging information')
@@ -56,6 +55,10 @@ class DoomtownDraw:
 
         if args.debug:
             self.debug = True
+
+        stud = 2
+        if args.stud:
+            stud = args.stud
 
         print("Importing Deck")
         try:
@@ -66,14 +69,14 @@ class DoomtownDraw:
 
         print("Determining Hand Ranks")
         num_iterations = 10000
-        if args.iterations != 0:
+        if args.iterations:
             num_iterations = args.iterations
         sum_ranks = 0
         num_per_rank = {}
         for ii in range(1, 12):
             num_per_rank[ii] = 0
         for ii in range(0, num_iterations):
-            hand_rank = self.determine_hand_ranks(args.stud)
+            hand_rank = self.determine_hand_ranks(stud)
             sum_ranks += hand_rank
             num_per_rank[hand_rank] += 1
         print('Average hand rank: %f' % (sum_ranks/num_iterations))
