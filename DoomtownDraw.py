@@ -11,6 +11,8 @@ class DoomtownDraw:
         self.cardFactory = DoomtownCardFactory.DoomtownCardFactory()
         self.deck = []
         self.debug = False
+        self.stud = 2
+        self.num_iterations = 10000
 
     def import_deck(self, deck_file):
         count = 0
@@ -34,14 +36,35 @@ class DoomtownDraw:
         if count > 54:
             raise ImportError('Error, too many cards in deck %s' % str(deck_file.name))
 
-    def determine_hand_ranks(self, stud):
-        random.shuffle(self.deck)
-        draw_rank = DoomtownDrawRank.DoomtownDrawRank(self.deck[:5+stud], self.debug)
+    def determine_hand_ranks(self):
+        cheating_sum_ranks = 0
+        legal_sum_ranks = 0
+        cheating_num_per_rank = {}
+        legal_num_per_rank = {}
 
-        cheating = draw_rank.get_rank(True)
-        if self.debug:
-            print(cheating)
-        return cheating
+        for ii in range(1, 12):
+            cheating_num_per_rank[ii] = 0
+            legal_num_per_rank[ii] = 0
+
+        for ii in range(0, self.num_iterations):
+            random.shuffle(self.deck)
+            draw_rank = DoomtownDrawRank.DoomtownDrawRank(self.deck[:5+self.stud], self.debug)
+            cheating_hand_rank, legal_hand_rank = draw_rank.get_rank()
+            cheating_sum_ranks += cheating_hand_rank
+            cheating_num_per_rank[cheating_hand_rank] += 1
+            legal_sum_ranks += legal_hand_rank
+            legal_num_per_rank[legal_hand_rank] += 1
+
+        print('Average Cheating hand rank: %f' % (cheating_sum_ranks/self.num_iterations))
+        print('Average Legal hand rank: %f' % (legal_sum_ranks/self.num_iterations))
+
+        print('Cheating Hand rank breakdown')
+        for ii in range(1, 12):
+            print('Rank %d: %d' % (ii, cheating_num_per_rank[ii]))
+
+        print('Legal Hand rank breakdown')
+        for ii in range(1, 12):
+            print('Rank %d: %d' % (ii, legal_num_per_rank[ii]))
 
     def main(self):
         parser = argparse.ArgumentParser(description="Calculate Doomtown Hand ranks.")
@@ -53,12 +76,7 @@ class DoomtownDraw:
         parser.add_argument('--debug', action='store_true', help='Print debugging information')
         args = parser.parse_args()
 
-        if args.debug:
-            self.debug = True
-
-        stud = 2
-        if args.stud:
-            stud = args.stud
+        self.read_arguments(args)
 
         print("Importing Deck")
         try:
@@ -68,21 +86,18 @@ class DoomtownDraw:
             exit()
 
         print("Determining Hand Ranks")
-        num_iterations = 10000
+        self.determine_hand_ranks()
+
+    def read_arguments(self, args):
+        if args.debug:
+            self.debug = True
+
+        if args.stud:
+            self.stud = args.stud
+
         if args.iterations:
-            num_iterations = args.iterations
-        sum_ranks = 0
-        num_per_rank = {}
-        for ii in range(1, 12):
-            num_per_rank[ii] = 0
-        for ii in range(0, num_iterations):
-            hand_rank = self.determine_hand_ranks(stud)
-            sum_ranks += hand_rank
-            num_per_rank[hand_rank] += 1
-        print('Average hand rank: %f' % (sum_ranks/num_iterations))
-        print('Hand rank breakdown')
-        for ii in range(1, 12):
-            print('Rank %d: %d' % (ii, num_per_rank[ii]))
+            self.num_iterations = args.iterations
+
 
 if __name__ == '__main__':
     doomtown_draw = DoomtownDraw()

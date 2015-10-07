@@ -8,20 +8,24 @@ class DoomtownDrawRank:
         self.debug = debug
 
     # Determine the hand rank of this hand
-    def get_rank(self, cheating):
-        if cheating:
-            return self.get_cheating_rank()
-        return 0
+    def get_rank(self):
+        cheating = self.get_hand_rank(self.hand)
+        self.legal_hand = self.remove_duplicate_cards(self.hand)
+        legal = self.get_hand_rank(self.legal_hand)
+        return cheating, legal
 
-    # Determine the hand rank of this hand, allowing for cheating
-    def get_cheating_rank(self):
+    # Determine the hand rank of this hand
+    def get_hand_rank(self, hand):
         if self.debug:
             self.print_hand(self.hand)
-        number_of_jokers = self.remove_jokers_from_hand(self.hand)
-        cards_by_value = self.get_cards_by_value(self.hand)
-        cards_by_suit = self.get_cards_by_suit(self.hand)
-        cards_of_value = self.get_number_of_each_value(self.hand)
-        return self.determine_hand_rank(self.hand, cards_by_value, cards_by_suit, cards_of_value, number_of_jokers)
+        if len(hand) < 5:
+            return 0
+
+        number_of_jokers = self.remove_jokers_from_hand(hand)
+        cards_by_value = self.get_cards_by_value(hand)
+        cards_by_suit = self.get_cards_by_suit(hand)
+        cards_of_value = self.get_number_of_each_value(hand)
+        return self.determine_hand_rank(hand, cards_by_value, cards_by_suit, cards_of_value, number_of_jokers)
 
     # Determine the hand rank of this hand
     def determine_hand_rank(self, hand, cards_by_value, cards_by_suit, cards_of_value, num_jokers):
@@ -211,19 +215,22 @@ class DoomtownDrawRank:
         print(s)
 
     # An attempt to remove duplicate cards so as to disallow cheating hands. Currently not working
-    def remove_duplicate_cards(self):
-        index = len(self.hand)
+    @staticmethod
+    def remove_duplicate_cards(hand):
+        index = len(hand)
         cards_to_remove = []
-        for card in self.hand:
+        for card in hand:
             index -= 1
 
             if index is 0:
                 break
 
-            for check_card in self.hand[-index:]:
-                if card.value == check_card.value and card.suit == check_card.suit and check_card not in cards_to_remove:
+            for check_card in hand[-index:]:
+                if card.value == check_card.value and card.suit == check_card.suit and card.joker and \
+                                check_card not in cards_to_remove:
                     cards_to_remove.append(check_card)
 
         for card in cards_to_remove:
-            self.hand.remove(card)
+            hand.remove(card)
 
+        return hand
