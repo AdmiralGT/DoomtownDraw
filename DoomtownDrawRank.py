@@ -154,7 +154,7 @@ class DoomtownDrawRank:
     @staticmethod
     def get_cards_by_value(hand):
         cards_by_value = {}
-        for ii in range(1, 13):
+        for ii in range(1, 14):
             cards = []
             for card in hand:
                 if card.is_value(ii):
@@ -180,7 +180,7 @@ class DoomtownDrawRank:
         cards_of_each_value = {}
         for ii in range(1, len(hand) + 1):
             cards_of_this_value = []
-            for jj in range(1, 13):
+            for jj in range(1, 14):
                 cards_of_value = 0
                 for card in hand:
                     if card.value == jj:
