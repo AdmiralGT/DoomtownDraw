@@ -3,21 +3,37 @@ __author__ = 'AdmiralGT'
 
 
 class DoomtownDrawRank:
-    def __init__(self, hand, debug):
-        self.hand = hand
+    def __init__(self, hand, card_factory, debug):
         self.debug = debug
+        self.card_factory = card_factory
+        self.legal_hand = self.copy_hand(hand)
+        self.cheating_hand = self.copy_hand(hand)
+
+    # Create a local copy of a hand
+    def copy_hand(self, hand):
+        copy_hand = []
+        for card in hand:
+            if card.joker:
+                copy_hand.append(self.card_factory.create_joker())
+            else:
+                copy_hand.append(self.card_factory.create_card(card.value, card.suit.value))
+        return copy_hand
 
     # Determine the hand rank of this hand
     def get_rank(self):
-        cheating = self.get_hand_rank(self.hand)
-        self.legal_hand = self.remove_duplicate_cards(self.hand)
+        cheating = self.get_hand_rank(self.cheating_hand)
+        if self.debug:
+            print(cheating)
+        self.legal_hand = self.remove_duplicate_cards(self.legal_hand)
         legal = self.get_hand_rank(self.legal_hand)
+        if self.debug:
+            print(legal)
         return cheating, legal
 
     # Determine the hand rank of this hand
     def get_hand_rank(self, hand):
         if self.debug:
-            self.print_hand(self.hand)
+            self.print_hand(hand)
         if len(hand) < 5:
             return 0
 
@@ -130,7 +146,7 @@ class DoomtownDrawRank:
     @staticmethod
     def is_x_of_a_kind(num_kind, cards_by_value, num_jokers):
         for value in cards_by_value.values():
-            if len(value) + num_jokers > num_kind:
+            if len(value) + num_jokers >= num_kind:
                 return True
         return False
 
@@ -224,9 +240,13 @@ class DoomtownDrawRank:
 
             if index is 0:
                 break
+            if card.joker:
+                continue
 
             for check_card in hand[-index:]:
-                if card.value == check_card.value and card.suit == check_card.suit and card.joker and \
+                if check_card.joker:
+                    continue
+                if card.value == check_card.value and card.suit == check_card.suit and \
                                 check_card not in cards_to_remove:
                     cards_to_remove.append(check_card)
 

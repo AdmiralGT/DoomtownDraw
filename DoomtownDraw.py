@@ -8,11 +8,14 @@ __author__ = 'AdmiralGT'
 
 class DoomtownDraw:
     def __init__(self):
-        self.cardFactory = DoomtownCardFactory.DoomtownCardFactory()
+        self.card_factory = DoomtownCardFactory.DoomtownCardFactory()
         self.deck = []
         self.debug = False
         self.stud = 2
         self.num_iterations = 10000
+        self.ranks = {0: 'No hand', 1: 'High card', 2: 'One Pair', 3: 'Two Pair', 4: 'Three of a kind', 5: 'Straight',
+                      6: 'Flush', 7: 'Full House', 8: 'Four of a kind', 9: 'Straight Flush', 10: 'Five of a kind',
+                      11: 'Dead Mans Hand'}
 
     def import_deck(self, deck_file):
         count = 0
@@ -25,10 +28,10 @@ class DoomtownDraw:
             count += 1
 
             if len(split_line) == 2:
-                self.deck.append(self.cardFactory.create_card(int(split_line[0]), split_line[1]))
+                self.deck.append(self.card_factory.create_card(int(split_line[0]), split_line[1]))
             else:
                 num_jokers += 1
-                self.deck.append(self.cardFactory.create_joker())
+                self.deck.append(self.card_factory.create_joker())
         if num_jokers > 2:
             raise ImportError('Error, too many jokers in deck %s' % str(deck_file.name))
         if count < 47:
@@ -42,13 +45,13 @@ class DoomtownDraw:
         cheating_num_per_rank = {}
         legal_num_per_rank = {}
 
-        for ii in range(1, 12):
+        for ii in range(0, 12):
             cheating_num_per_rank[ii] = 0
             legal_num_per_rank[ii] = 0
 
         for ii in range(0, self.num_iterations):
             random.shuffle(self.deck)
-            draw_rank = DoomtownDrawRank.DoomtownDrawRank(self.deck[:5+self.stud], self.debug)
+            draw_rank = DoomtownDrawRank.DoomtownDrawRank(self.deck[:5+self.stud], self.card_factory, self.debug)
             cheating_hand_rank, legal_hand_rank = draw_rank.get_rank()
             cheating_sum_ranks += cheating_hand_rank
             cheating_num_per_rank[cheating_hand_rank] += 1
@@ -59,12 +62,12 @@ class DoomtownDraw:
         print('Average Legal hand rank: %f' % (legal_sum_ranks/self.num_iterations))
 
         print('Cheating Hand rank breakdown')
-        for ii in range(1, 12):
-            print('Rank %d: %d' % (ii, cheating_num_per_rank[ii]))
+        for ii in range(0, 12):
+            print('{:16s}: {:d}'.format(self.ranks[ii], cheating_num_per_rank[ii]))
 
         print('Legal Hand rank breakdown')
-        for ii in range(1, 12):
-            print('Rank %d: %d' % (ii, legal_num_per_rank[ii]))
+        for ii in range(0, 12):
+            print('{:16s}: {:d}'.format(self.ranks[ii], legal_num_per_rank[ii]))
 
     def main(self):
         parser = argparse.ArgumentParser(description="Calculate Doomtown Hand ranks.")
