@@ -30,14 +30,32 @@ class DoomtownDrawRank:
             print(legal)
         return cheating, legal
 
+    # Determines the lowball hand rank of this hand
+    def get_lowball_rank(self):
+        hand_rank = self.get_hand_rank(self.cheating_hand, True)
+        if self.debug:
+            print(hand_rank)
+        legal = self.is_hand_legal(self.cheating_hand)
+        return hand_rank, legal
+
+    # Determines if a hand is legal or not
+    def is_hand_legal(self, hand):
+        duplicate_cards = self.get_duplicate_cards(hand)
+        if len(duplicate_cards) > 0:
+            return False
+        return True
+
     # Determine the hand rank of this hand
-    def get_hand_rank(self, hand):
+    def get_hand_rank(self, hand, lowball=False):
         if self.debug:
             self.print_hand(hand)
         if len(hand) < 5:
             return 0
 
         number_of_jokers = self.remove_jokers_from_hand(hand)
+        if lowball:
+            # In lowball, Jokers never improve our hand, hence count them as 0.
+            number_of_jokers = 0
         cards_by_value = self.get_cards_by_value(hand)
         cards_by_suit = self.get_cards_by_suit(hand)
         cards_of_value = self.get_number_of_each_value(hand)
@@ -114,6 +132,14 @@ class DoomtownDrawRank:
                 return True
         return False
 
+    # An attempt to remove duplicate cards so as to disallow cheating hands. Currently not working
+    def remove_duplicate_cards(self, hand):
+        cards_to_remove = self.get_duplicate_cards(hand)
+
+        for card in cards_to_remove:
+            hand.remove(card)
+
+        return hand
     # Do we have a full house or two pair?
     @staticmethod
     def is_x_y(x, y, cards_by_value, num_jokers):
@@ -230,9 +256,9 @@ class DoomtownDrawRank:
             s += ' '
         print(s)
 
-    # An attempt to remove duplicate cards so as to disallow cheating hands. Currently not working
+    # A method to get duplicate cards
     @staticmethod
-    def remove_duplicate_cards(hand):
+    def get_duplicate_cards(hand):
         index = len(hand)
         cards_to_remove = []
         for card in hand:
@@ -249,8 +275,4 @@ class DoomtownDrawRank:
                 if card.value == check_card.value and card.suit == check_card.suit and \
                                 check_card not in cards_to_remove:
                     cards_to_remove.append(check_card)
-
-        for card in cards_to_remove:
-            hand.remove(card)
-
-        return hand
+        return cards_to_remove
