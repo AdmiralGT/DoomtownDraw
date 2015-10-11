@@ -23,15 +23,15 @@ class DoomtownDraw:
         for line in deck_file:
             line = line.rstrip()
             split_line = line.split(',')
-            if len(split_line) < 2 and line != 'Joker':
+            if len(split_line) < 2 and line.lower() != 'joker':
                 raise ImportError('Error reading line %s' % str(line))
             count += 1
 
-            if len(split_line) == 2:
-                self.deck.append(self.card_factory.create_card(int(split_line[0]), split_line[1]))
-            else:
+            if line.lower() == 'joker':
                 num_jokers += 1
                 self.deck.append(self.card_factory.create_joker())
+            else:
+                self.deck.append(self.card_factory.create_card(int(split_line[0]), split_line[1]))
         if num_jokers > 2:
             raise ImportError('Error, too many jokers in deck %s' % str(deck_file.name))
         if count < 47:
