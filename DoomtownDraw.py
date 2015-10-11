@@ -34,7 +34,7 @@ class DoomtownDraw:
                 self.deck.append(self.card_factory.create_card(int(split_line[0]), split_line[1]))
         if num_jokers > 2:
             raise ImportError('Error, too many jokers in deck %s' % str(deck_file.name))
-        if count < 47:
+        if count < 46:
             raise ImportError('Error, not enough cards in deck %s' % str(deck_file.name))
         if count > 54:
             raise ImportError('Error, too many cards in deck %s' % str(deck_file.name))
