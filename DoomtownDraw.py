@@ -11,6 +11,7 @@ class DoomtownDraw:
         self.card_factory = DoomtownCardFactory.DoomtownCardFactory()
         self.deck = []
         self.debug = False
+        self.lowball = False
         self.stud = 2
         self.num_iterations = 10000
         self.ranks = {0: 'No hand', 1: 'High card', 2: 'One Pair', 3: 'Two Pair', 4: 'Three of a kind', 5: 'Straight',
@@ -23,18 +24,18 @@ class DoomtownDraw:
         for line in deck_file:
             line = line.rstrip()
             split_line = line.split(',')
-            if len(split_line) < 2 and line != 'Joker':
+            if len(split_line) < 2 and line.lower() != 'joker':
                 raise ImportError('Error reading line %s' % str(line))
             count += 1
 
-            if len(split_line) == 2:
-                self.deck.append(self.card_factory.create_card(int(split_line[0]), split_line[1]))
-            else:
+            if line.lower() == 'joker':
                 num_jokers += 1
                 self.deck.append(self.card_factory.create_joker())
+            else:
+                self.deck.append(self.card_factory.create_card(int(split_line[0]), split_line[1]))
         if num_jokers > 2:
             raise ImportError('Error, too many jokers in deck %s' % str(deck_file.name))
-        if count < 47:
+        if count < 46:
             raise ImportError('Error, not enough cards in deck %s' % str(deck_file.name))
         if count > 54:
             raise ImportError('Error, too many cards in deck %s' % str(deck_file.name))
@@ -69,6 +70,31 @@ class DoomtownDraw:
         for ii in range(0, 12):
             print('{:16s}: {:d}'.format(self.ranks[ii], legal_num_per_rank[ii]))
 
+    def determine_lowball_ranks(self):
+        sum_ranks = 0
+        cheating_num_per_rank = {}
+        legal_num_per_rank = {}
+
+        for ii in range(0, 12):
+            cheating_num_per_rank[ii] = 0
+            legal_num_per_rank[ii] = 0
+
+        for ii in range(0, self.num_iterations):
+            random.shuffle(self.deck)
+            draw_rank = DoomtownDrawRank.DoomtownDrawRank(self.deck[:5], self.card_factory, self.debug)
+            hand_rank, legal = draw_rank.get_lowball_rank()
+            sum_ranks += hand_rank
+            if legal:
+                legal_num_per_rank[hand_rank] += 1
+            else:
+                cheating_num_per_rank[hand_rank] += 1
+
+        print('Average Lowball hand rank: %f' % (sum_ranks/self.num_iterations))
+
+        print('Hand rank breakdown - Legal Cheating')
+        for ii in range(0, 12):
+            print('{:16s}: {:d} {:d}'.format(self.ranks[ii], legal_num_per_rank[ii], cheating_num_per_rank[ii]))
+
     def main(self):
         parser = argparse.ArgumentParser(description="Calculate Doomtown Hand ranks.")
         parser.add_argument('filename', type=argparse.FileType('r'),
@@ -76,6 +102,7 @@ class DoomtownDraw:
         parser.add_argument('--stud', type=int, action='store', help='The number of stud bullets in the posse.')
         parser.add_argument('--iterations', type=int, action='store',
                             help='The number of iterations to simulate hands for')
+        parser.add_argument('--lowball', action='store_true', help='Calculates lowball hands instead of shootout')
         parser.add_argument('--debug', action='store_true', help='Print debugging information')
         args = parser.parse_args()
 
@@ -89,7 +116,10 @@ class DoomtownDraw:
             exit()
 
         print("Determining Hand Ranks")
-        self.determine_hand_ranks()
+        if self.lowball:
+            self.determine_lowball_ranks()
+        else:
+            self.determine_hand_ranks()
 
     def read_arguments(self, args):
         if args.debug:
@@ -100,6 +130,9 @@ class DoomtownDraw:
 
         if args.iterations:
             self.num_iterations = args.iterations
+
+        if args.lowball:
+            self.lowball = True
 
 
 if __name__ == '__main__':
