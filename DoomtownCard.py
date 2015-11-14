@@ -9,11 +9,17 @@ class DoomtownSuit(Enum):
     Spades = 'S'
 
 
-class DoomtownCard(object):
-    def __init__(self, is_joker, suit=None, value=None):
+class DoomtownJoker(Enum):
+    NotJoker = 0
+    Base = 1
+    Devils = 2
 
-        self.joker = is_joker
-        if is_joker:
+
+class DoomtownCard(object):
+    def __init__(self, joker, suit=None, value=None):
+
+        self.joker = joker
+        if self.is_joker():
             return
 
         if value < 1 or value > 13:
@@ -32,16 +38,23 @@ class DoomtownCard(object):
             raise ValueError('Not a valid card')
 
     def __str__(self):
-        if self.joker:
+        if self.joker == DoomtownJoker.Base:
             return 'Joker'
+        elif self.joker == DoomtownJoker.Devils:
+            return 'Devil\'s Joker'
         return '%s%s' % (self.value, self.suit.value)
 
     def is_suit(self, suit):
-        if self.joker or self.suit == suit:
+        if self.is_joker() or self.suit == suit:
             return True
         return False
 
     def is_value(self, value):
-        if self.joker or self.value == value:
+        if self.is_joker() or self.value == value:
+            return True
+        return False
+
+    def is_joker(self):
+        if self.joker != DoomtownJoker.NotJoker:
             return True
         return False

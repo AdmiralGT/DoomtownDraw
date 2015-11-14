@@ -1,3 +1,4 @@
+from DoomtownCard import DoomtownJoker
 from DoomtownCard import DoomtownSuit
 __author__ = 'AdmiralGT'
 
@@ -13,8 +14,10 @@ class DoomtownDrawRank:
     def copy_hand(self, hand):
         copy_hand = []
         for card in hand:
-            if card.joker:
-                copy_hand.append(self.card_factory.create_joker())
+            if card.joker == DoomtownJoker.Base:
+                copy_hand.append(self.card_factory.create_joker(DoomtownJoker.Base))
+            elif card.joker == DoomtownJoker.Devils:
+                copy_hand.append(self.card_factory.create_joker(DoomtownJoker.Devils))
             else:
                 copy_hand.append(self.card_factory.create_card(card.value, card.suit.value))
         return copy_hand
@@ -24,7 +27,7 @@ class DoomtownDrawRank:
         cheating = self.get_hand_rank(self.cheating_hand)
         if self.debug:
             print(cheating)
-        self.legal_hand = self.remove_duplicate_cards(self.legal_hand)
+        self.legal_hand = self.remove_illegal_cards(self.legal_hand)
         legal = self.get_hand_rank(self.legal_hand)
         if self.debug:
             print(legal)
@@ -40,8 +43,8 @@ class DoomtownDrawRank:
 
     # Determines if a hand is legal or not
     def is_hand_legal(self, hand):
-        duplicate_cards = self.get_duplicate_cards(hand)
-        if len(duplicate_cards) > 0:
+        illegal_cards = self.get_illegal_cards(hand)
+        if len(illegal_cards) > 0:
             return False
         return True
 
@@ -52,38 +55,40 @@ class DoomtownDrawRank:
         if len(hand) < 5:
             return 0
 
-        number_of_jokers = self.remove_jokers_from_hand(hand)
+        num_jokers, num_devils = self.remove_jokers_from_hand(hand)
         if lowball:
-            # In lowball, Jokers never improve our hand, hence count them as 0.
-            number_of_jokers = 0
+            # In lowball, Jokers never improve our hand, hence count them as 0. However, we must still remember how
+            # many Devil's Jokers we had since these will increase our hand rank.
+            num_jokers = 0
         cards_by_value = self.get_cards_by_value(hand)
         cards_by_suit = self.get_cards_by_suit(hand)
         cards_of_value = self.get_number_of_each_value(hand)
-        return self.determine_hand_rank(hand, cards_by_value, cards_by_suit, cards_of_value, number_of_jokers)
+        return self.determine_hand_rank(hand, cards_by_value, cards_by_suit, cards_of_value, num_jokers, num_devils)
 
     # Determine the hand rank of this hand
-    def determine_hand_rank(self, hand, cards_by_value, cards_by_suit, cards_of_value, num_jokers):
+    def determine_hand_rank(self, hand, cards_by_value, cards_by_suit, cards_of_value, num_jokers, num_devils):
+        hand_rank = 1
         if self.is_dead_mans_hand(hand, num_jokers):
-            return 11
-        if self.is_x_of_a_kind(5, cards_by_value, num_jokers):
-            return 10
-        if self.is_straight_flush(cards_by_suit, num_jokers):
-            return 9
-        if self.is_x_of_a_kind(4, cards_by_value, num_jokers):
-            return 8
-        if self.is_x_y(3, 2, cards_of_value, num_jokers):
-            return 7
-        if self.is_flush(cards_by_suit, num_jokers):
-            return 6
-        if self.is_straight(hand, num_jokers):
-            return 5
-        if self.is_x_of_a_kind(3, cards_by_value, num_jokers):
-            return 4
-        if self.is_x_y(2, 2, cards_of_value, num_jokers):
-            return 3
-        if self.is_x_of_a_kind(2, cards_by_value, num_jokers):
-            return 2
-        return 1
+            hand_rank = 11
+        elif self.is_x_of_a_kind(5, cards_by_value, num_jokers):
+            hand_rank = 10
+        elif self.is_straight_flush(cards_by_suit, num_jokers):
+            hand_rank = 9
+        elif self.is_x_of_a_kind(4, cards_by_value, num_jokers):
+            hand_rank = 8
+        elif self.is_x_y(3, 2, cards_of_value, num_jokers):
+            hand_rank = 7
+        elif self.is_flush(cards_by_suit, num_jokers):
+            hand_rank = 6
+        elif self.is_straight(hand, num_jokers):
+            hand_rank = 5
+        elif self.is_x_of_a_kind(3, cards_by_value, num_jokers):
+            hand_rank = 4
+        elif self.is_x_y(2, 2, cards_of_value, num_jokers):
+            hand_rank = 3
+        elif self.is_x_of_a_kind(2, cards_by_value, num_jokers):
+            hand_rank = 2
+        return min(11, hand_rank + (2 * num_devils))
 
     # Is this a Dead Man's hand?
     def is_dead_mans_hand(self, hand, num_jokers):
@@ -132,9 +137,10 @@ class DoomtownDrawRank:
                 return True
         return False
 
-    # An attempt to remove duplicate cards so as to disallow cheating hands. Currently not working
-    def remove_duplicate_cards(self, hand):
-        cards_to_remove = self.get_duplicate_cards(hand)
+    # An attempt to remove cards that make this hand cheating. This means we need to remove any duplicate cards and
+    # any Devil's jokers.
+    def remove_illegal_cards(self, hand):
+        cards_to_remove = self.get_illegal_cards(hand)
 
         for card in cards_to_remove:
             hand.remove(card)
@@ -238,14 +244,17 @@ class DoomtownDrawRank:
     @staticmethod
     def remove_jokers_from_hand(hand):
         jokers = []
+        devils_jokers = []
         for card in hand:
-            if card.joker:
+            if card.is_joker():
                 jokers.append(card)
+            if card.joker == DoomtownJoker.Devils:
+                devils_jokers.append(card)
 
         for card in jokers:
             hand.remove(card)
 
-        return len(jokers)
+        return len(jokers), len(devils_jokers)
 
     # Prints a hand, useful for debugging
     @staticmethod
@@ -258,7 +267,7 @@ class DoomtownDrawRank:
 
     # A method to get duplicate cards
     @staticmethod
-    def get_duplicate_cards(hand):
+    def get_illegal_cards(hand):
         index = len(hand)
         cards_to_remove = []
         for card in hand:
@@ -266,11 +275,13 @@ class DoomtownDrawRank:
 
             if index is 0:
                 break
-            if card.joker:
+            if card.is_joker:
+                if card.joker == DoomtownJoker.Devils:
+                    cards_to_remove.append(card)
                 continue
 
             for check_card in hand[-index:]:
-                if check_card.joker:
+                if check_card.is_joker():
                     continue
                 if card.value == check_card.value and card.suit == check_card.suit and \
                                 check_card not in cards_to_remove:
