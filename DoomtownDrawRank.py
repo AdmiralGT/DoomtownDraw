@@ -111,7 +111,7 @@ class DoomtownDrawRank:
     # Is this a Straight Flush?
     def is_straight_flush(self, cards_by_suit, num_jokers):
         for suit in cards_by_suit:
-            if len(cards_by_suit[suit]) >= 5:
+            if (len(cards_by_suit[suit]) + num_jokers) >= 5:
                 if self.is_straight(cards_by_suit[suit], num_jokers):
                     return True
         return False
