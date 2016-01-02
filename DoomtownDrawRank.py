@@ -266,8 +266,7 @@ class DoomtownDrawRank:
         print(s)
 
     # A method to get duplicate cards
-    @staticmethod
-    def get_illegal_cards(hand):
+    def get_illegal_cards(self, hand):
         index = len(hand)
         cards_to_remove = []
         for card in hand:
@@ -275,7 +274,7 @@ class DoomtownDrawRank:
 
             if index is 0:
                 break
-            if card.is_joker:
+            if card.is_joker():
                 if card.joker == DoomtownJoker.Devils:
                     cards_to_remove.append(card)
                 continue
