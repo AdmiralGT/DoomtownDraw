@@ -115,13 +115,14 @@ class DoomtownDraw:
 
         self.read_arguments(args)
 
-        print("Importing Deck")
+        print('Importing Deck')
         try:
             self.import_deck(args.filename)
         except ImportError as e:
             print(e.msg)
             exit()
 
+        print('Determining Hand ranks')
         if self.lowball:
             self.determine_lowball_ranks()
         else:
