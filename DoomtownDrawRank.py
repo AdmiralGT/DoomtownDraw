@@ -248,8 +248,8 @@ class DoomtownDrawRank:
         for card in hand:
             if card.is_joker():
                 jokers.append(card)
-            if card.joker == DoomtownJoker.Devils:
-                devils_jokers.append(card)
+                if card.joker == DoomtownJoker.Devils:
+                    devils_jokers.append(card)
 
         for card in jokers:
             hand.remove(card)
