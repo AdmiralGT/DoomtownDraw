@@ -25,6 +25,6 @@ File format
 
 1 card per line. Cards must be given in the following format Value,Suit. Value is a value from 1 (Ace) to 13 (King). Suit is C (Clubs), D (Diamonds), H (Hearts), S (Spades). 
 
-Jokers are represented by just the text 'Joker'.
+Regular Jokers are represented by just the text 'Joker'. Devil's Jokers (from The Light Shineth) are represented by the text 'Devils Joker'.
 
 Minimum of 46 cards (108 may start with 6 starting dudes in a 52 card deck), maximum of 54 cards and 2 Jokers.
