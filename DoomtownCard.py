@@ -9,9 +9,18 @@ class DoomtownSuit(Enum):
     Spades = 'S'
 
 
-class DoomtownCard(object):
-    def __init__(self, is_joker, suit=None, value=None):
+class DoomtownJoker(Enum):
+    NotJoker = 0
+    Base = 1
+    Devils = 2
 
+
+class DoomtownCard(object):
+    # It results in much quicker computation to pass an is_joker parameter rather than performing an if test on each
+    # lookup so while it looks a bit "messier" it saves us all time.
+    def __init__(self, is_joker, joker, suit=None, value=None):
+
+        self.joker_type = joker
         self.joker = is_joker
         if is_joker:
             return
@@ -32,8 +41,10 @@ class DoomtownCard(object):
             raise ValueError('Not a valid card')
 
     def __str__(self):
-        if self.joker:
+        if self.joker_type == DoomtownJoker.Base:
             return 'Joker'
+        elif self.joker_type == DoomtownJoker.Devils:
+            return 'Devil\'s Joker'
         return '%s%s' % (self.value, self.suit.value)
 
     def is_suit(self, suit):

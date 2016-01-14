@@ -1,4 +1,5 @@
 import DoomtownCardFactory
+from DoomtownCard import DoomtownJoker
 import DoomtownDrawRank
 import random
 import argparse
@@ -24,13 +25,16 @@ class DoomtownDraw:
         for line in deck_file:
             line = line.rstrip()
             split_line = line.split(',')
-            if len(split_line) < 2 and line.lower() != 'joker':
+            if len(split_line) < 2 and split_line[0] != 'joker':
                 raise ImportError('Error reading line %s' % str(line))
             count += 1
 
-            if line.lower() == 'joker':
+            if split_line[0] == 'joker':
                 num_jokers += 1
-                self.deck.append(self.card_factory.create_joker())
+                if len(split_line) > 1 and split_line[1].lower() == 'devils':
+                    self.deck.append(self.card_factory.create_joker(DoomtownJoker.Devils))
+                else:
+                    self.deck.append(self.card_factory.create_joker(DoomtownJoker.Base))
             else:
                 self.deck.append(self.card_factory.create_card(int(split_line[0]), split_line[1]))
         if num_jokers > 2:
@@ -43,6 +47,7 @@ class DoomtownDraw:
     def determine_hand_ranks(self):
         cheating_sum_ranks = 0
         legal_sum_ranks = 0
+        differential = 0
         cheating_num_per_rank = {}
         legal_num_per_rank = {}
 
@@ -58,9 +63,11 @@ class DoomtownDraw:
             cheating_num_per_rank[cheating_hand_rank] += 1
             legal_sum_ranks += legal_hand_rank
             legal_num_per_rank[legal_hand_rank] += 1
+            differential += cheating_hand_rank - legal_hand_rank
 
         print('Average Cheating hand rank: %f' % (cheating_sum_ranks/self.num_iterations))
         print('Average Legal hand rank: %f' % (legal_sum_ranks/self.num_iterations))
+        print('Average differential: %f' % (differential/self.num_iterations))
 
         print('Cheating Hand rank breakdown')
         for ii in range(0, 12):
@@ -115,7 +122,6 @@ class DoomtownDraw:
             print(e.msg)
             exit()
 
-        print("Determining Hand Ranks")
         if self.lowball:
             self.determine_lowball_ranks()
         else:
