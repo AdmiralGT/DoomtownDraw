@@ -122,7 +122,6 @@ class DoomtownDraw:
             print(e.msg)
             exit()
 
-        print("Determining Hand Ranks")
         if self.lowball:
             self.determine_lowball_ranks()
         else:

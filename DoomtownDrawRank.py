@@ -14,12 +14,10 @@ class DoomtownDrawRank:
     def copy_hand(self, hand):
         copy_hand = []
         for card in hand:
-            if card.joker == DoomtownJoker.Base:
-                copy_hand.append(self.card_factory.create_joker(DoomtownJoker.Base))
-            elif card.joker == DoomtownJoker.Devils:
-                copy_hand.append(self.card_factory.create_joker(DoomtownJoker.Devils))
-            else:
+            if card.joker_type == DoomtownJoker.NotJoker:
                 copy_hand.append(self.card_factory.create_card(card.value, card.suit.value))
+            else:
+                copy_hand.append(self.card_factory.create_joker(card.joker_type))
         return copy_hand
 
     # Determine the hand rank of this hand
@@ -144,8 +142,8 @@ class DoomtownDrawRank:
 
         for card in cards_to_remove:
             hand.remove(card)
-
         return hand
+
     # Do we have a full house or two pair?
     @staticmethod
     def is_x_y(x, y, cards_by_value, num_jokers):
@@ -246,9 +244,9 @@ class DoomtownDrawRank:
         jokers = []
         devils_jokers = []
         for card in hand:
-            if card.is_joker():
+            if card.joker:
                 jokers.append(card)
-                if card.joker == DoomtownJoker.Devils:
+                if card.joker_type == DoomtownJoker.Devils:
                     devils_jokers.append(card)
 
         for card in jokers:
@@ -266,7 +264,8 @@ class DoomtownDrawRank:
         print(s)
 
     # A method to get duplicate cards
-    def get_illegal_cards(self, hand):
+    @staticmethod
+    def get_illegal_cards(hand):
         index = len(hand)
         cards_to_remove = []
         for card in hand:
@@ -274,13 +273,13 @@ class DoomtownDrawRank:
 
             if index is 0:
                 break
-            if card.is_joker():
-                if card.joker == DoomtownJoker.Devils:
+            if card.joker:
+                if card.joker_type == DoomtownJoker.Devils:
                     cards_to_remove.append(card)
                 continue
 
             for check_card in hand[-index:]:
-                if check_card.is_joker():
+                if check_card.joker:
                     continue
                 if card.value == check_card.value and card.suit == check_card.suit and \
                                 check_card not in cards_to_remove:

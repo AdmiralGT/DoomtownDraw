@@ -16,10 +16,13 @@ class DoomtownJoker(Enum):
 
 
 class DoomtownCard(object):
-    def __init__(self, joker, suit=None, value=None):
+    # It results in much quicker computation to pass an is_joker parameter rather than performing an if test on each
+    # lookup so while it looks a bit "messier" it saves us all time.
+    def __init__(self, is_joker, joker, suit=None, value=None):
 
-        self.joker = joker
-        if self.is_joker():
+        self.joker_type = joker
+        self.joker = is_joker
+        if is_joker:
             return
 
         if value < 1 or value > 13:
@@ -38,23 +41,18 @@ class DoomtownCard(object):
             raise ValueError('Not a valid card')
 
     def __str__(self):
-        if self.joker == DoomtownJoker.Base:
+        if self.joker_type == DoomtownJoker.Base:
             return 'Joker'
-        elif self.joker == DoomtownJoker.Devils:
+        elif self.joker_type == DoomtownJoker.Devils:
             return 'Devil\'s Joker'
         return '%s%s' % (self.value, self.suit.value)
 
     def is_suit(self, suit):
-        if self.is_joker() or self.suit == suit:
+        if self.joker or self.suit == suit:
             return True
         return False
 
     def is_value(self, value):
-        if self.is_joker() or self.value == value:
-            return True
-        return False
-
-    def is_joker(self):
-        if self.joker != DoomtownJoker.NotJoker:
+        if self.joker or self.value == value:
             return True
         return False

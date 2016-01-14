@@ -6,8 +6,8 @@ __author__ = 'AdmiralGT'
 class DoomtownCardFactory:
     @staticmethod
     def create_card(value, suit):
-        return DoomtownCard.DoomtownCard(DoomtownJoker.NotJoker, suit, value)
+        return DoomtownCard.DoomtownCard(False, DoomtownJoker.NotJoker, suit, value)
 
     @staticmethod
     def create_joker(joker_type):
-        return DoomtownCard.DoomtownCard(joker_type)
+        return DoomtownCard.DoomtownCard(True, joker_type)
