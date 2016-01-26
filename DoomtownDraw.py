@@ -25,11 +25,11 @@ class DoomtownDraw:
         for line in deck_file:
             line = line.rstrip()
             split_line = line.split(',')
-            if len(split_line) < 2 and split_line[0] != 'joker':
+            if len(split_line) < 2 and split_line[0].lower() != 'joker':
                 raise ImportError('Error reading line %s' % str(line))
             count += 1
 
-            if split_line[0] == 'joker':
+            if split_line[0].lower() == 'joker':
                 num_jokers += 1
                 if len(split_line) > 1 and split_line[1].lower() == 'devils':
                     self.deck.append(self.card_factory.create_joker(DoomtownJoker.Devils))
